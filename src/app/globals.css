@@ -1,26 +1,256 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --c1: 130, 160, 255;
+  --c2: 200, 170, 240;
+  --c3: 250, 190, 220;
+  --c4: 170, 210, 250;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: #1e293b;
+  background: #eef2ff;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+
+/* Пастельный градиентный фон */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(160, 190, 255, 0.85) 0%, transparent 55%),
+    radial-gradient(circle at 85% 15%, rgba(200, 180, 255, 0.75) 0%, transparent 55%),
+    radial-gradient(circle at 10% 85%, rgba(220, 200, 250, 0.70) 0%, transparent 60%),
+    radial-gradient(circle at 90% 80%, rgba(180, 220, 255, 0.80) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(240, 210, 240, 0.50) 0%, transparent 70%),
+    linear-gradient(135deg, #e8eefe 0%, #f0e8ff 50%, #ffeaef 100%);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(130, 160, 255, 0.4);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(130, 160, 255, 0.7);
+  background-clip: padding-box;
+}
+
+/* ═══ GLASS ═══ */
+.glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 8px 32px rgba(130, 160, 255, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+.glass-solid {
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 10px 40px rgba(130, 160, 255, 0.18),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 24px rgba(130, 160, 255, 0.12);
+}
+
+/* Тёмная тема (базовая, чтобы не сломалась если переключишь) */
+[data-theme="dark"] body,
+body[data-theme="dark"] {
+  color: #f1f5f9;
+}
+[data-theme="dark"] body::before {
+  background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a);
+}
+[data-theme="dark"] .glass,
+[data-theme="dark"] .glass-solid,
+[data-theme="dark"] .glass-light {
+  background: rgba(30, 41, 59, 0.55);
+  border-color: rgba(148, 163, 184, 0.2);
+  color: #f1f5f9;
+}
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] p {
+  color: #f1f5f9;
+}
+
+/* ═══ HOVER ═══ */
+.card-hover {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 24px 50px rgba(130, 160, 255, 0.30),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95);
+}
+
+/* ═══ АНИМАЦИИ ═══ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp { animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fadeIn { animation: fadeIn 0.4s ease both; }
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-scaleIn { animation: scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-animate { animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Цвета текста — как на картинке */
+.text-slate-900 { color: #0f172a; }
+.text-slate-700 { color: #334155; }
+.text-slate-500 { color: #64748b; }
+
+/* ═══ PRINT ═══ */
+@media print {
+  body { background: white !important; color: black !important; }
+  body::before { display: none; }
+  header, nav, button, .no-print { display: none !important; }
+  @page { size: landscape; margin: 0; }
+}
+/* ═══════════ АНИМАЦИЯ ПЛАВАНИЯ ИКОНОК ═══════════ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+.animate-float-slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* ═══════════ СВЕЧЕНИЕ ВКЛАДОК В ШАПКЕ ═══════════ */
+
+.nav-link {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(
+    120deg,
+    rgba(59, 130, 246, 0) 0%,
+    rgba(59, 130, 246, 0.15) 50%,
+    rgba(139, 92, 246, 0.15) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.nav-link:hover {
+  color: #1d4ed8 !important;
+  transform: translateY(-2px);
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.nav-link:hover::before {
+  opacity: 1;
+}
+
+.nav-link:hover::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  padding: 2px;
+  background: linear-gradient(
+    120deg,
+    rgba(59, 130, 246, 0.6),
+    rgba(139, 92, 246, 0.6),
+    rgba(236, 72, 153, 0.6)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  animation: glowFade 0.4s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes glowFade {
+  to { opacity: 1; }
+}
+
+.nav-link.active::before {
+  opacity: 1;
+  background: linear-gradient(
+    120deg,
+    rgba(59, 130, 246, 0.25) 0%,
+    rgba(139, 92, 246, 0.20) 100%
+  );
+}
+
+/* Свечение иконок при hover */
+.nav-link:hover svg {
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.7));
+  transform: scale(1.1);
+  transition: all 0.3s ease;
+}
+
+/* ═══════════ МЯГКОЕ СВЕЧЕНИЕ КАРТОЧЕК ПРИ HOVER ═══════════ */
+
+.card-hover {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 24px 50px rgba(130, 160, 255, 0.35),
+    0 0 0 3px rgba(255, 255, 255, 0.6),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95);
 }
