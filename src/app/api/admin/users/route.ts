@@ -8,11 +8,19 @@ async function checkAdmin() {
 }
 
 export async function GET() {
-  if (!(await checkAdmin())) return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
+  if (!(await checkAdmin())) {
+    return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
+  }
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     select: {
-      id: true, name: true, email: true, role: true, banned: true, createdAt: true,
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      banned: true,
+      grade: true,
+      createdAt: true,
       taughtCourses: { select: { id: true, title: true } },
     },
   });
