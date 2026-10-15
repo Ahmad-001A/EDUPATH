@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -42,6 +43,7 @@ export default function TeacherTestsPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importMode, setImportMode] = useState<"manual" | "file">("manual");
@@ -59,6 +61,10 @@ export default function TeacherTestsPage() {
   ]);
 
   const role = (session?.user as any)?.role;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (status === "authenticated" && role !== "TEACHER" && role !== "ADMIN") {
@@ -364,373 +370,377 @@ export default function TeacherTestsPage() {
         </div>
       )}
 
-      {/* МОДАЛКА — нормальные размеры, с отступами */}
-{/* МОДАЛКА СОЗДАНИЯ ТЕСТА */}
-{showModal && (
-  <div
-    className="fixed left-0 right-0 bottom-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center"
-    style={{ top: "100px", padding: "24px" }}
-    onClick={() => setShowModal(false)}
-  >
-    <div
-      className="bg-gradient-to-br from-white via-[#f8f5ff] to-[#fff5f8] rounded-3xl w-full max-w-3xl border-4 border-white shadow-2xl flex flex-col modal-animate"
-      style={{
-        height: "calc(100vh - 140px)",
-        maxHeight: "calc(100vh - 140px)",
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* Шапка модалки */}
-      <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b-2 border-white/60 flex-shrink-0 bg-white/60 rounded-t-3xl">
-        <h3 className="text-xl md:text-2xl font-bold text-[#0f1c3f] flex items-center gap-3">
-          <ClipboardList className="w-7 h-7 text-[#3561d4]" />
-          Новый тест
-        </h3>
-        <button
-          onClick={() => setShowModal(false)}
-          className="p-2 hover:bg-white/60 rounded-xl transition"
-        >
-          <X className="w-6 h-6 text-[#4a5578]" />
-        </button>
-      </div>
-
-      {/* Прокрутка контента */}
-      <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6">
-        <div className="space-y-6">
-          {/* Название */}
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
-              Название теста *
-            </label>
-            <input
-              value={form.title}
-              onChange={(e) =>
-                setForm({ ...form, title: e.target.value })
-              }
-              className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
-              placeholder="Например: Основы Python"
-            />
-          </div>
-
-          {/* Курс */}
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
-              Курс *
-            </label>
-            <select
-              value={form.courseId}
-              onChange={(e) =>
-                setForm({ ...form, courseId: e.target.value })
-              }
-              className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
-            >
-              <option value="">— Выберите —</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Описание */}
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
-              Описание
-            </label>
-            <textarea
-              rows={3}
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition resize-none"
-            />
-          </div>
-
-          {/* Время / Балл */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
-                Лимит времени (мин)
-              </label>
-              <input
-                type="number"
-                value={form.timeLimit}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    timeLimit: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
-                Проходной балл (%)
-              </label>
-              <input
-                type="number"
-                value={form.passScore}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    passScore: parseInt(e.target.value) || 70,
-                  })
-                }
-                className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
-              />
-            </div>
-          </div>
-
-          {/* КЛАССЫ */}
-          <div className="bg-gradient-to-br from-[#eef0ff] via-[#f5eefe] to-[#ffeef5] rounded-3xl p-5 border-2 border-white">
-            <label className="block text-base font-bold mb-4 text-[#0f1c3f] flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-[#3561d4]" />
-              Для каких классов?
-            </label>
-
-            <div className="flex gap-2 mb-4 flex-wrap">
-              <button
-                type="button"
-                onClick={selectAllGrades}
-                className="text-sm px-4 py-2 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white rounded-xl hover:opacity-90 transition font-medium shadow-lg shadow-indigo-500/30"
-              >
-                ✓ Выбрать все
-              </button>
-              <button
-                type="button"
-                onClick={clearAllGrades}
-                className="text-sm px-4 py-2 bg-white text-[#4a5578] rounded-xl hover:bg-gray-50 border border-white/80 font-medium transition"
-              >
-                Сбросить
-              </button>
-            </div>
-
-            <div className="grid grid-cols-6 gap-2">
-              {Array.from({ length: 11 }, (_, i) => i + 1).map((g) => {
-                const active = grades.includes(g);
-                return (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => toggleGrade(g)}
-                    className={`aspect-square rounded-2xl font-bold text-base transition-all flex items-center justify-center ${
-                      active
-                        ? "bg-gradient-to-br from-[#4f7cff] to-[#7c5cff] text-white shadow-xl shadow-indigo-500/40 scale-105"
-                        : "bg-white text-[#4a5578] hover:bg-[#eef0ff] border-2 border-white shadow-sm hover:scale-105"
-                    }`}
-                  >
-                    {active ? <Check className="w-5 h-5" /> : g}
-                  </button>
-                );
-              })}
-            </div>
-
+      {/* МОДАЛКА СОЗДАНИЯ ТЕСТА (Portal) */}
+      {mounted &&
+        showModal &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowModal(false)}
+          >
             <div
-              className={`mt-4 p-3 rounded-xl text-sm ${
-                grades.length === 0
-                  ? "bg-yellow-50 text-yellow-800 border border-yellow-200"
-                  : "bg-green-50 text-green-800 border border-green-200"
-              }`}
+              className="bg-gradient-to-br from-white via-[#f8f5ff] to-[#fff5f8] rounded-3xl w-full max-w-3xl border-4 border-white shadow-2xl flex flex-col modal-animate"
+              style={{ height: "90vh", maxHeight: "90vh" }}
+              onClick={(e) => e.stopPropagation()}
             >
-              {grades.length === 0
-                ? "⚠️ Классы не выбраны — увидят все"
-                : `✅ Классы: ${grades.join(", ")}`}
-            </div>
-          </div>
-
-          <hr className="border-white/60" />
-
-          {/* СПОСОБ ДОБАВЛЕНИЯ */}
-          <div className="flex gap-2 p-1.5 bg-white/70 rounded-2xl border-2 border-white/80">
-            <button
-              type="button"
-              onClick={() => setImportMode("manual")}
-              className={`flex-1 py-3 rounded-xl font-semibold transition ${
-                importMode === "manual"
-                  ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg"
-                  : "text-[#4a5578] hover:bg-white/80"
-              }`}
-            >
-              ✍️ Вручную
-            </button>
-            <button
-              type="button"
-              onClick={() => setImportMode("file")}
-              className={`flex-1 py-3 rounded-xl font-semibold transition ${
-                importMode === "file"
-                  ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg"
-                  : "text-[#4a5578] hover:bg-white/80"
-              }`}
-            >
-              📁 Импорт
-            </button>
-          </div>
-
-          {importMode === "file" && (
-            <div className="bg-gradient-to-br from-[#eef0ff] to-[#f5eefe] p-6 rounded-3xl border-2 border-dashed border-[#4f7cff]/50 text-center">
-              <FileSpreadsheet className="w-14 h-14 text-[#3561d4] mx-auto mb-3" />
-              <h4 className="font-bold mb-2 text-[#0f1c3f]">
-                Загрузите файл с вопросами
-              </h4>
-              <p className="text-xs text-[#4a5578] mb-4">
-                Формат CSV:{" "}
-                <code className="bg-white/70 px-2 py-1 rounded">
-                  Вопрос;В1;В2;В3;В4;Правильный;Баллы
-                </code>
-              </p>
-
-              <div className="flex gap-2 justify-center flex-wrap">
+              {/* Шапка модалки */}
+              <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b-2 border-white/60 flex-shrink-0 bg-white/60 rounded-t-3xl">
+                <h3 className="text-xl md:text-2xl font-bold text-[#0f1c3f] flex items-center gap-3">
+                  <ClipboardList className="w-7 h-7 text-[#3561d4]" />
+                  Новый тест
+                </h3>
                 <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={importing}
-                  className="bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-5 py-2.5 rounded-xl font-semibold hover:opacity-90 transition flex items-center gap-2 shadow-lg disabled:opacity-50"
+                  onClick={() => setShowModal(false)}
+                  className="p-2 hover:bg-white/60 rounded-xl transition"
                 >
-                  {importing ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4" />
-                  )}
-                  Выбрать файл
-                </button>
-                <button
-                  type="button"
-                  onClick={downloadTemplate}
-                  className="bg-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition flex items-center gap-2 text-[#4a5578] border-2 border-white shadow-md"
-                >
-                  <Download className="w-4 h-4" /> Шаблон
+                  <X className="w-6 h-6 text-[#4a5578]" />
                 </button>
               </div>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv,.txt"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </div>
-          )}
+              {/* Прокручиваемый контент */}
+              <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6">
+                <div className="space-y-6">
+                  {/* Название */}
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
+                      Название теста *
+                    </label>
+                    <input
+                      value={form.title}
+                      onChange={(e) =>
+                        setForm({ ...form, title: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                      placeholder="Например: Основы Python"
+                    />
+                  </div>
 
-          {importMode === "manual" && (
-            <>
-              <div className="flex items-center justify-between">
-                <h4 className="font-bold text-base text-[#0f1c3f]">
-                  Вопросы ({questions.length})
-                </h4>
-                <button
-                  onClick={addQuestion}
-                  className="text-sm text-[#3561d4] font-semibold hover:underline"
-                >
-                  + Добавить
-                </button>
-              </div>
+                  {/* Курс */}
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
+                      Курс *
+                    </label>
+                    <select
+                      value={form.courseId}
+                      onChange={(e) =>
+                        setForm({ ...form, courseId: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                    >
+                      <option value="">— Выберите —</option>
+                      {courses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {questions.map((q, qi) => (
-                <div
-                  key={qi}
-                  className="bg-gradient-to-br from-white to-[#f8f5ff] p-4 rounded-2xl border-2 border-white shadow-md"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-bold text-[#0f1c3f] text-sm">
-                      Вопрос {qi + 1}
-                    </span>
-                    {questions.length > 1 && (
+                  {/* Описание */}
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
+                      Описание
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={form.description}
+                      onChange={(e) =>
+                        setForm({ ...form, description: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition resize-none"
+                    />
+                  </div>
+
+                  {/* Время / Балл */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
+                        Лимит времени (мин)
+                      </label>
+                      <input
+                        type="number"
+                        value={form.timeLimit}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            timeLimit: parseInt(e.target.value) || 0,
+                          })
+                        }
+                        className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
+                        Проходной балл (%)
+                      </label>
+                      <input
+                        type="number"
+                        value={form.passScore}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            passScore: parseInt(e.target.value) || 70,
+                          })
+                        }
+                        className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                      />
+                    </div>
+                  </div>
+
+                  {/* КЛАССЫ */}
+                  <div className="bg-gradient-to-br from-[#eef0ff] via-[#f5eefe] to-[#ffeef5] rounded-3xl p-5 border-2 border-white">
+                    <label className="block text-base font-bold mb-4 text-[#0f1c3f] flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5 text-[#3561d4]" />
+                      Для каких классов?
+                    </label>
+
+                    <div className="flex gap-2 mb-4 flex-wrap">
                       <button
-                        onClick={() => removeQuestion(qi)}
-                        className="text-red-600 hover:bg-red-50 p-1.5 rounded-lg"
+                        type="button"
+                        onClick={selectAllGrades}
+                        className="text-sm px-4 py-2 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white rounded-xl hover:opacity-90 transition font-medium shadow-lg shadow-indigo-500/30"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        ✓ Выбрать все
                       </button>
-                    )}
-                  </div>
+                      <button
+                        type="button"
+                        onClick={clearAllGrades}
+                        className="text-sm px-4 py-2 bg-white text-[#4a5578] rounded-xl hover:bg-gray-50 border border-white/80 font-medium transition"
+                      >
+                        Сбросить
+                      </button>
+                    </div>
 
-                  <input
-                    value={q.text}
-                    onChange={(e) =>
-                      updateQuestion(qi, "text", e.target.value)
-                    }
-                    className="w-full px-4 py-3 border-2 border-white/80 rounded-xl mb-3 bg-white/80 text-[#0f1c3f] text-sm focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
-                    placeholder="Текст вопроса"
-                  />
-
-                  <div className="space-y-2 mb-3">
-                    {q.options.map((opt, oi) => (
-                      <div key={oi} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={opt.isCorrect}
-                          onChange={(e) =>
-                            updateOption(
-                              qi,
-                              oi,
-                              "isCorrect",
-                              e.target.checked
-                            )
-                          }
-                          className="w-5 h-5 rounded cursor-pointer accent-[#4f7cff]"
-                          title="Правильный ответ"
-                        />
-                        <input
-                          value={opt.text}
-                          onChange={(e) =>
-                            updateOption(qi, oi, "text", e.target.value)
-                          }
-                          className="flex-1 px-3 py-2 border-2 border-white/80 rounded-xl text-sm bg-white/80 text-[#0f1c3f] focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
-                          placeholder={`Вариант ${oi + 1}`}
-                        />
-                        {q.options.length > 2 && (
+                    <div className="grid grid-cols-6 gap-2">
+                      {Array.from({ length: 11 }, (_, i) => i + 1).map((g) => {
+                        const active = grades.includes(g);
+                        return (
                           <button
-                            onClick={() => removeOption(qi, oi)}
-                            className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"
+                            key={g}
+                            type="button"
+                            onClick={() => toggleGrade(g)}
+                            className={`aspect-square rounded-2xl font-bold text-base transition-all flex items-center justify-center ${
+                              active
+                                ? "bg-gradient-to-br from-[#4f7cff] to-[#7c5cff] text-white shadow-xl shadow-indigo-500/40 scale-105"
+                                : "bg-white text-[#4a5578] hover:bg-[#eef0ff] border-2 border-white shadow-sm hover:scale-105"
+                            }`}
                           >
-                            <X className="w-4 h-4" />
+                            {active ? <Check className="w-5 h-5" /> : g}
                           </button>
-                        )}
-                      </div>
-                    ))}
+                        );
+                      })}
+                    </div>
+
+                    <div
+                      className={`mt-4 p-3 rounded-xl text-sm ${
+                        grades.length === 0
+                          ? "bg-yellow-50 text-yellow-800 border border-yellow-200"
+                          : "bg-green-50 text-green-800 border border-green-200"
+                      }`}
+                    >
+                      {grades.length === 0
+                        ? "⚠️ Классы не выбраны — увидят все"
+                        : `✅ Классы: ${grades.join(", ")}`}
+                    </div>
                   </div>
 
-                  <button
-                    onClick={() => addOption(qi)}
-                    className="text-xs text-[#3561d4] font-semibold hover:underline"
-                  >
-                    + Вариант
-                  </button>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-      </div>
+                  <hr className="border-white/60" />
 
-      {/* Кнопки внизу (всегда видны) */}
-      <div className="flex gap-3 px-6 md:px-8 py-4 border-t-2 border-white/60 flex-shrink-0 bg-white/60 rounded-b-3xl">
-        <button
-          onClick={() => setShowModal(false)}
-          className="px-6 py-3 border-2 border-white/80 rounded-2xl hover:bg-white/60 text-[#4a5578] font-medium transition"
-        >
-          Отмена
-        </button>
-        <button
-          onClick={handleSubmit}
-          disabled={saving}
-          className="flex-1 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-xl shadow-indigo-500/30 hover:opacity-90 transition"
-        >
-          {saving ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <Save className="w-5 h-5" />
-          )}
-          Создать тест
-        </button>
-      </div>
-    </div>
-  </div>
-      )}
+                  {/* СПОСОБ */}
+                  <div className="flex gap-2 p-1.5 bg-white/70 rounded-2xl border-2 border-white/80">
+                    <button
+                      type="button"
+                      onClick={() => setImportMode("manual")}
+                      className={`flex-1 py-3 rounded-xl font-semibold transition ${
+                        importMode === "manual"
+                          ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg"
+                          : "text-[#4a5578] hover:bg-white/80"
+                      }`}
+                    >
+                      ✍️ Вручную
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImportMode("file")}
+                      className={`flex-1 py-3 rounded-xl font-semibold transition ${
+                        importMode === "file"
+                          ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg"
+                          : "text-[#4a5578] hover:bg-white/80"
+                      }`}
+                    >
+                      📁 Импорт
+                    </button>
+                  </div>
+
+                  {importMode === "file" && (
+                    <div className="bg-gradient-to-br from-[#eef0ff] to-[#f5eefe] p-6 rounded-3xl border-2 border-dashed border-[#4f7cff]/50 text-center">
+                      <FileSpreadsheet className="w-14 h-14 text-[#3561d4] mx-auto mb-3" />
+                      <h4 className="font-bold mb-2 text-[#0f1c3f]">
+                        Загрузите файл с вопросами
+                      </h4>
+                      <p className="text-xs text-[#4a5578] mb-4">
+                        Формат CSV:{" "}
+                        <code className="bg-white/70 px-2 py-1 rounded">
+                          Вопрос;В1;В2;В3;В4;Правильный;Баллы
+                        </code>
+                      </p>
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={importing}
+                          className="bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-5 py-2.5 rounded-xl font-semibold hover:opacity-90 transition flex items-center gap-2 shadow-lg disabled:opacity-50"
+                        >
+                          {importing ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4" />
+                          )}
+                          Выбрать файл
+                        </button>
+                        <button
+                          type="button"
+                          onClick={downloadTemplate}
+                          className="bg-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition flex items-center gap-2 text-[#4a5578] border-2 border-white shadow-md"
+                        >
+                          <Download className="w-4 h-4" /> Шаблон
+                        </button>
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv,.txt"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  )}
+
+                  {importMode === "manual" && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-base text-[#0f1c3f]">
+                          Вопросы ({questions.length})
+                        </h4>
+                        <button
+                          onClick={addQuestion}
+                          className="text-sm text-[#3561d4] font-semibold hover:underline"
+                        >
+                          + Добавить
+                        </button>
+                      </div>
+
+                      {questions.map((q, qi) => (
+                        <div
+                          key={qi}
+                          className="bg-gradient-to-br from-white to-[#f8f5ff] p-4 rounded-2xl border-2 border-white shadow-md"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="font-bold text-[#0f1c3f] text-sm">
+                              Вопрос {qi + 1}
+                            </span>
+                            {questions.length > 1 && (
+                              <button
+                                onClick={() => removeQuestion(qi)}
+                                className="text-red-600 hover:bg-red-50 p-1.5 rounded-lg"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+
+                          <input
+                            value={q.text}
+                            onChange={(e) =>
+                              updateQuestion(qi, "text", e.target.value)
+                            }
+                            className="w-full px-4 py-3 border-2 border-white/80 rounded-xl mb-3 bg-white/80 text-[#0f1c3f] text-sm focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                            placeholder="Текст вопроса"
+                          />
+
+                          <div className="space-y-2 mb-3">
+                            {q.options.map((opt, oi) => (
+                              <div
+                                key={oi}
+                                className="flex items-center gap-2"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={opt.isCorrect}
+                                  onChange={(e) =>
+                                    updateOption(
+                                      qi,
+                                      oi,
+                                      "isCorrect",
+                                      e.target.checked
+                                    )
+                                  }
+                                  className="w-5 h-5 rounded cursor-pointer accent-[#4f7cff]"
+                                  title="Правильный ответ"
+                                />
+                                <input
+                                  value={opt.text}
+                                  onChange={(e) =>
+                                    updateOption(
+                                      qi,
+                                      oi,
+                                      "text",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="flex-1 px-3 py-2 border-2 border-white/80 rounded-xl text-sm bg-white/80 text-[#0f1c3f] focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                                  placeholder={`Вариант ${oi + 1}`}
+                                />
+                                {q.options.length > 2 && (
+                                  <button
+                                    onClick={() => removeOption(qi, oi)}
+                                    className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          <button
+                            onClick={() => addOption(qi)}
+                            className="text-xs text-[#3561d4] font-semibold hover:underline"
+                          >
+                            + Вариант
+                          </button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Кнопки внизу */}
+              <div className="flex gap-3 px-6 md:px-8 py-4 border-t-2 border-white/60 flex-shrink-0 bg-white/60 rounded-b-3xl">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-6 py-3 border-2 border-white/80 rounded-2xl hover:bg-white/60 text-[#4a5578] font-medium transition"
+                >
+                  Отмена
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={saving}
+                  className="flex-1 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-xl shadow-indigo-500/30 hover:opacity-90 transition"
+                >
+                  {saving ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Save className="w-5 h-5" />
+                  )}
+                  Создать тест
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
