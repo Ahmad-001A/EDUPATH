@@ -367,13 +367,13 @@ export default function TeacherTestsPage() {
       {/* МОДАЛКА — нормальные размеры, с отступами */}
 {showModal && (
   <div
-    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-    style={{ top: 0, bottom: 0, left: 0, right: 0 }}
+    className="fixed left-0 right-0 bottom-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center"
+    style={{ top: "100px", padding: "16px" }}
     onClick={() => setShowModal(false)}
   >
     <div
       className="bg-gradient-to-br from-white via-[#f8f5ff] to-[#fff5f8] rounded-3xl w-full max-w-3xl border-4 border-white shadow-2xl flex flex-col modal-animate"
-      style={{ height: "90vh", maxHeight: "90vh" }}
+      style={{ height: "100%", maxHeight: "100%" }}
       onClick={(e) => e.stopPropagation()}
     >
             {/* Шапка модалки */}
