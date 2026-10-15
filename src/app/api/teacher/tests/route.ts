@@ -38,11 +38,15 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { title, description, courseId, timeLimit, passScore, questions } = body;
+  const { title, description, courseId, timeLimit, passScore, questions, grades } = body;
 
   if (!title || !courseId || !Array.isArray(questions) || questions.length === 0) {
     return NextResponse.json({ error: "Заполните все поля" }, { status: 400 });
   }
+
+  const validGrades = Array.isArray(grades)
+    ? grades.filter((g: any) => Number.isInteger(g) && g >= 1 && g <= 11)
+    : [];
 
   const test = await prisma.test.create({
     data: {
@@ -51,6 +55,7 @@ export async function POST(req: Request) {
       courseId,
       timeLimit: timeLimit || 0,
       passScore: passScore || 70,
+      grades: validGrades,
       questions: {
         create: questions.map((q: any, qi: number) => ({
           text: q.text,
