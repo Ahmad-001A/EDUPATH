@@ -730,4 +730,4 @@ export default function TeacherTestsPage() {
       </div>
     </div>
   </div>
-)}
+)
