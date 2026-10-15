@@ -15,6 +15,7 @@ model User {
   image         String?
   role          String        @default("STUDENT")
   banned        Boolean       @default(false)
+  grade         Int?          // 1-11, только для STUDENT
   createdAt     DateTime      @default(now())
   progress      Progress[]
   taughtCourses Course[]      @relation("CourseTeacher")
@@ -32,6 +33,7 @@ model Course {
   category     String
   level        String
   duration     String
+  grades       Int[]         // классы: [5, 6, 7] — пусто = для всех
   teacherId    String?
   teacher      User?         @relation("CourseTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
   modules      Module[]
@@ -128,6 +130,7 @@ model Test {
   description String?
   courseId    String
   course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  grades      Int[]        // классы, как у курса
   timeLimit   Int          @default(0)
   passScore   Int          @default(70)
   questions   Question[]
