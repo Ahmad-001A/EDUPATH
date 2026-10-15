@@ -365,16 +365,16 @@ export default function TeacherTestsPage() {
       )}
 
       {/* МОДАЛКА — нормальные размеры, с отступами */}
-      {showModal && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-start md:items-center justify-center p-4 md:p-8 overflow-y-auto"
-          onClick={() => setShowModal(false)}
-        >
-          <div
-            className="bg-gradient-to-br from-white via-[#f8f5ff] to-[#fff5f8] rounded-3xl w-full max-w-3xl border-4 border-white shadow-2xl flex flex-col my-auto modal-animate"
-            style={{ maxHeight: "85vh" }}
-            onClick={(e) => e.stopPropagation()}
-          >
+{showModal && (
+  <div
+    className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-2 md:p-4"
+    onClick={() => setShowModal(false)}
+  >
+    <div
+      className="bg-gradient-to-br from-white via-[#f8f5ff] to-[#fff5f8] rounded-3xl w-full max-w-3xl border-4 border-white shadow-2xl flex flex-col modal-animate"
+      style={{ maxHeight: "96vh", height: "96vh" }}
+      onClick={(e) => e.stopPropagation()}
+    >
             {/* Шапка модалки */}
             <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b-2 border-white/60 flex-shrink-0 bg-white/60 rounded-t-3xl">
               <h3 className="text-xl md:text-2xl font-bold text-[#0f1c3f] flex items-center gap-3">
