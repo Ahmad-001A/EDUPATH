@@ -7,10 +7,19 @@ async function checkAdmin() {
   return (session?.user as any)?.role === "ADMIN";
 }
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await checkAdmin())) return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await checkAdmin()))
+    return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
   const { id } = await params;
   const body = await req.json();
+
+  const validGrades = Array.isArray(body.grades)
+    ? body.grades.filter((g: any) => Number.isInteger(g) && g >= 1 && g <= 11)
+    : [];
+
   const course = await prisma.course.update({
     where: { id },
     data: {
@@ -20,14 +29,19 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       category: body.category,
       level: body.level,
       duration: body.duration,
+      grades: validGrades,
       teacherId: body.teacherId || null,
     },
   });
   return NextResponse.json(course);
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await checkAdmin())) return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await checkAdmin()))
+    return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
   const { id } = await params;
   await prisma.course.delete({ where: { id } });
   return NextResponse.json({ success: true });
