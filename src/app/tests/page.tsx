@@ -9,14 +9,27 @@ import {
   Users,
   Award,
   CheckCircle,
+  GraduationCap,
 } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 
 export default async function TestsPage() {
   const session = await auth();
   const userId = (session?.user as any)?.id;
+  const role = (session?.user as any)?.role;
+  const userGrade =
+    role === "STUDENT" ? (session?.user as any)?.grade : null;
+
+  const where: any = {};
+  if (userGrade) {
+    where.OR = [
+      { grades: { isEmpty: true } },
+      { grades: { has: userGrade } },
+    ];
+  }
 
   const tests = await prisma.test.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       course: {
@@ -30,8 +43,7 @@ export default async function TestsPage() {
   const myResults = userId
     ? await prisma.testResult.findMany({
         where: { userId },
-        select: { testId: true, percent: true, passed: true, createdAt: true },
-        orderBy: { createdAt: "desc" },
+        select: { testId: true, percent: true, passed: true },
       })
     : [];
 
@@ -52,24 +64,40 @@ export default async function TestsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold gradient-text">Тесты</h1>
-        <p className="text-gray-500 mt-1">
-          Проверьте свои знания по предметам
-        </p>
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-[#0f1c3f]">Тесты</h1>
+          <p className="text-[#4a5578] mt-2">
+            {userGrade
+              ? `Тесты для ${userGrade} класса`
+              : "Проверьте свои знания по предметам"}
+          </p>
+        </div>
+        {userGrade && (
+          <div className="glass-card px-4 py-2 rounded-xl flex items-center gap-2">
+            <GraduationCap className="w-5 h-5 text-[#3561d4]" />
+            <span className="font-semibold text-[#0f1c3f]">
+              {userGrade} класс
+            </span>
+          </div>
+        )}
       </div>
 
       {tests.length === 0 ? (
         <EmptyState
           title="Тестов пока нет"
-          description="Скоро преподаватели добавят тесты по своим предметам. Следите за обновлениями!"
+          description={
+            userGrade
+              ? `Для ${userGrade} класса пока нет тестов. Зайдите позже!`
+              : "Скоро преподаватели добавят тесты."
+          }
         />
       ) : (
         <div className="space-y-8">
           {Object.entries(grouped).map(([category, catTests]) => (
             <div key={category} className="animate-fadeInUp">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="w-2 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[#0f1c3f]">
+                <span className="w-2 h-6 bg-gradient-to-b from-[#4f7cff] to-[#7c5cff] rounded-full" />
                 {category}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -79,11 +107,11 @@ export default async function TestsPage() {
                     <Link
                       key={test.id}
                       href={`/tests/${test.id}`}
-                      className="glass rounded-2xl border border-white/40 p-6 card-hover flex flex-col animate-fadeInUp"
+                      className="glass-card rounded-2xl p-6 card-hover flex flex-col animate-fadeInUp"
                       style={{ animationDelay: `${idx * 0.05}s` }}
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl text-white shadow-lg">
+                        <div className="p-3 bg-gradient-to-br from-[#7c5cff] to-[#4f7cff] rounded-2xl text-white shadow-lg shadow-indigo-500/40">
                           <ClipboardList className="w-6 h-6" />
                         </div>
                         {my && (
@@ -106,14 +134,22 @@ export default async function TestsPage() {
                         )}
                       </div>
 
-                      <h3 className="font-bold text-lg mb-1 line-clamp-1">
+                      <h3 className="font-bold text-lg mb-1 line-clamp-1 text-[#0f1c3f]">
                         {test.title}
                       </h3>
-                      <p className="text-sm text-gray-500 line-clamp-2 mb-3 min-h-[40px]">
+                      <p className="text-sm text-[#4a5578] line-clamp-2 mb-3 min-h-[40px]">
                         {test.description || test.course?.title}
                       </p>
 
-                      <div className="flex items-center gap-4 text-xs text-gray-500 mt-auto pt-3 border-t border-white/40">
+                      {test.grades.length > 0 && (
+                        <div className="mb-3">
+                          <span className="text-xs font-semibold bg-[#eef0ff] text-[#7c5cff] px-2 py-1 rounded-full">
+                            {test.grades.join(", ")} кл.
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-4 text-xs text-[#8a95b8] mt-auto pt-3 border-t border-white/60">
                         <span className="flex items-center gap-1">
                           <ClipboardList className="w-4 h-4" />
                           {test.questions.length} вопр.
@@ -131,7 +167,7 @@ export default async function TestsPage() {
                       </div>
 
                       <div className="flex items-center justify-between mt-3">
-                        <span className="text-xs font-semibold text-blue-600">
+                        <span className="text-xs font-semibold text-[#3561d4]">
                           Порог: {test.passScore}%
                         </span>
                         <Award className="w-4 h-4 text-yellow-500" />
