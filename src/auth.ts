@@ -17,45 +17,56 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
+
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
         });
+
         if (!user || !user.password) return null;
+
         const isValid = await bcrypt.compare(
           credentials.password as string,
           user.password
         );
+
         if (!isValid) return null;
-        return { id: user.id, email: user.email, name: user.name, role: user.role };
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          grade: user.grade,
+        } as any;
       },
     }),
   ],
-callbacks: {
-  async jwt({ token, user, trigger }) {
-    if (user) {
-      token.role = (user as any).role;
-      token.id = user.id;
-      token.grade = (user as any).grade;
-    }
-    // Обновляем при trigger === "update"
-    if (trigger === "update" && token.id) {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: token.id as string },
-        select: { role: true, grade: true },
-      });
-      if (dbUser) {
-        token.role = dbUser.role;
-        token.grade = dbUser.grade;
+  callbacks: {
+    async jwt({ token, user, trigger }) {
+      if (user) {
+        token.role = (user as any).role;
+        token.id = user.id;
+        token.grade = (user as any).grade;
       }
-    }
-    return token;
+      if (trigger === "update" && token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, grade: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.grade = dbUser.grade;
+        }
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        (session.user as any).role = token.role;
+        (session.user as any).id = token.id;
+        (session.user as any).grade = token.grade;
+      }
+      return session;
+    },
   },
-  async session({ session, token }) {
-    if (session.user) {
-      (session.user as any).role = token.role;
-      (session.user as any).id = token.id;
-      (session.user as any).grade = token.grade;
-    }
-    return session;
-  },
-},
+});
