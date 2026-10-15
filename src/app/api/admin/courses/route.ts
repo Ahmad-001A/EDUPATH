@@ -8,7 +8,8 @@ async function checkAdmin() {
 }
 
 export async function GET() {
-  if (!(await checkAdmin())) return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
+  if (!(await checkAdmin()))
+    return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
   const courses = await prisma.course.findMany({
     orderBy: { createdAt: "desc" },
     include: { teacher: { select: { id: true, name: true, email: true } } },
@@ -17,8 +18,14 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  if (!(await checkAdmin())) return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
+  if (!(await checkAdmin()))
+    return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
   const body = await req.json();
+
+  const validGrades = Array.isArray(body.grades)
+    ? body.grades.filter((g: any) => Number.isInteger(g) && g >= 1 && g <= 11)
+    : [];
+
   const course = await prisma.course.create({
     data: {
       title: body.title,
@@ -27,6 +34,7 @@ export async function POST(req: Request) {
       category: body.category,
       level: body.level,
       duration: body.duration,
+      grades: validGrades,
       teacherId: body.teacherId || null,
     },
   });
