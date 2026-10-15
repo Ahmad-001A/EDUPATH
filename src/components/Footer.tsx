@@ -86,10 +86,6 @@ export default function Footer({ siteName = "EduPath" }: { siteName?: string }) 
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                   Сертификаты
                 </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                  6 тем оформления
-                </li>
               </ul>
             </div>
           </div>
