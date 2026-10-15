@@ -15,6 +15,8 @@ import {
   Upload,
   FileSpreadsheet,
   Download,
+  GraduationCap,
+  Check,
 } from "lucide-react";
 
 type Option = { text: string; isCorrect: boolean };
@@ -25,6 +27,7 @@ type Test = {
   title: string;
   description: string | null;
   course: { id: string; title: string };
+  grades: number[];
   questions: any[];
   _count: { results: number };
   passScore: number;
@@ -50,6 +53,7 @@ export default function TeacherTestsPage() {
     timeLimit: 0,
     passScore: 70,
   });
+  const [grades, setGrades] = useState<number[]>([]);
   const [questions, setQuestions] = useState<Question[]>([
     { text: "", points: 1, options: [{ text: "", isCorrect: false }] },
   ]);
@@ -89,11 +93,26 @@ export default function TeacherTestsPage() {
       timeLimit: 0,
       passScore: 70,
     });
+    setGrades([]);
     setQuestions([
       { text: "", points: 1, options: [{ text: "", isCorrect: false }] },
     ]);
     setImportMode("manual");
   };
+
+  const toggleGrade = (g: number) => {
+    setGrades((prev) =>
+      prev.includes(g)
+        ? prev.filter((x) => x !== g)
+        : [...prev, g].sort((a, b) => a - b)
+    );
+  };
+
+  const selectAllGrades = () => {
+    setGrades(Array.from({ length: 11 }, (_, i) => i + 1));
+  };
+
+  const clearAllGrades = () => setGrades([]);
 
   const addQuestion = () => {
     setQuestions([
@@ -144,14 +163,7 @@ export default function TeacherTestsPage() {
       const text = await file.text();
       const lines = text.split(/\r?\n/).filter((l) => l.trim());
 
-      // Формат CSV:
-      // вопрос;вариант1;вариант2;вариант3;вариант4;номер_правильного;баллы
-      // Пример:
-      // Что такое Python?;Змея;Язык программирования;Игра;Птица;2;1
-
       const newQuestions: Question[] = [];
-
-      // Пропускаем заголовок если он есть
       const startIdx =
         lines[0].toLowerCase().includes("вопрос") ||
         lines[0].toLowerCase().includes("question")
@@ -163,8 +175,6 @@ export default function TeacherTestsPage() {
         if (parts.length < 4) continue;
 
         const [qText, ...rest] = parts;
-        // Последние два элемента: правильные ответы и баллы
-        // Правильные ответы могут быть "1" или "1,3"
         const points = parseInt(rest[rest.length - 1]) || 1;
         const correctStr = rest[rest.length - 2];
         const optionTexts = rest.slice(0, rest.length - 2);
@@ -182,7 +192,6 @@ export default function TeacherTestsPage() {
         }));
 
         if (!options.some((o) => o.isCorrect)) {
-          // Если не указан правильный — считаем первый правильным
           options[0].isCorrect = true;
         }
 
@@ -253,7 +262,7 @@ export default function TeacherTestsPage() {
     const res = await fetch("/api/teacher/tests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, questions }),
+      body: JSON.stringify({ ...form, questions, grades }),
     });
     if (res.ok) {
       setShowModal(false);
@@ -272,21 +281,21 @@ export default function TeacherTestsPage() {
   };
 
   if (status === "loading" || loading)
-    return <p className="text-gray-500">Загрузка...</p>;
+    return <p className="text-[#8a95b8]">Загрузка...</p>;
 
   return (
     <div className="space-y-6">
       <Link
         href="/teacher"
-        className="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600"
+        className="inline-flex items-center gap-2 text-[#4a5578] hover:text-[#3561d4]"
       >
         <ArrowLeft className="w-4 h-4" /> В учительскую
       </Link>
 
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold gradient-text">Мои тесты</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-4xl font-bold text-[#0f1c3f]">Мои тесты</h1>
+          <p className="text-[#4a5578] mt-1">
             Создавайте тесты вручную или импортом из файла
           </p>
         </div>
@@ -295,26 +304,26 @@ export default function TeacherTestsPage() {
             resetForm();
             setShowModal(true);
           }}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2.5 rounded-xl font-medium hover:opacity-90 transition flex items-center gap-2 shadow-lg"
+          className="bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-5 py-2.5 rounded-xl font-medium hover:opacity-90 transition flex items-center gap-2 shadow-lg shadow-indigo-500/30"
         >
           <Plus className="w-5 h-5" /> Создать тест
         </button>
       </div>
 
       {tests.length === 0 ? (
-        <div className="glass p-16 rounded-3xl text-center border border-white/40">
-          <ClipboardList className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">Тестов пока нет. Создайте первый!</p>
+        <div className="glass-card p-16 rounded-3xl text-center">
+          <ClipboardList className="w-16 h-16 text-[#8a95b8] mx-auto mb-4" />
+          <p className="text-[#4a5578]">Тестов пока нет. Создайте первый!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {tests.map((test) => (
             <div
               key={test.id}
-              className="glass p-6 rounded-2xl border border-white/40 card-hover"
+              className="glass-card p-6 rounded-2xl card-hover"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl text-white shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-[#7c5cff] to-[#4f7cff] rounded-2xl text-white shadow-lg shadow-indigo-500/40">
                   <ClipboardList className="w-6 h-6" />
                 </div>
                 <button
@@ -324,10 +333,27 @@ export default function TeacherTestsPage() {
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-              <h3 className="font-bold text-lg mb-1">{test.title}</h3>
-              <p className="text-sm text-gray-500 mb-3">{test.course.title}</p>
+              <h3 className="font-bold text-lg mb-1 text-[#0f1c3f]">
+                {test.title}
+              </h3>
+              <p className="text-sm text-[#4a5578] mb-3">
+                {test.course.title}
+              </p>
 
-              <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-white/40">
+              {test.grades && test.grades.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {test.grades.map((g) => (
+                    <span
+                      key={g}
+                      className="text-xs font-semibold bg-[#eef0ff] text-[#7c5cff] px-2 py-0.5 rounded-full"
+                    >
+                      {g} кл.
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-4 text-xs text-[#8a95b8] pt-3 border-t border-white/60">
                 <span>{test.questions.length} вопросов</span>
                 <span className="flex items-center gap-1">
                   <Users className="w-3 h-3" />
@@ -338,7 +364,7 @@ export default function TeacherTestsPage() {
 
               <Link
                 href={`/teacher/tests/${test.id}`}
-                className="mt-4 block text-center bg-blue-50 text-blue-600 font-medium py-2 rounded-xl hover:bg-blue-100 transition text-sm"
+                className="mt-4 block text-center bg-[#eef0ff] text-[#3561d4] font-medium py-2 rounded-xl hover:bg-[#dfe4ff] transition text-sm"
               >
                 Результаты и просмотр →
               </Link>
@@ -350,9 +376,9 @@ export default function TeacherTestsPage() {
       {/* МОДАЛКА СОЗДАНИЯ */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="glass p-6 rounded-3xl max-w-4xl w-full border border-white/40 my-8 modal-animate max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4 sticky top-0 bg-transparent pb-3 border-b border-white/40">
-              <h3 className="text-xl font-bold">Новый тест</h3>
+          <div className="glass-card p-6 rounded-3xl max-w-4xl w-full my-8 modal-animate max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4 sticky top-0 bg-transparent pb-3 border-b border-white/60">
+              <h3 className="text-xl font-bold text-[#0f1c3f]">Новый тест</h3>
               <button
                 onClick={() => setShowModal(false)}
                 className="p-2 hover:bg-white/50 rounded-lg"
@@ -364,7 +390,7 @@ export default function TeacherTestsPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm font-medium mb-1 text-[#4a5578]">
                     Название теста
                   </label>
                   <input
@@ -372,18 +398,20 @@ export default function TeacherTestsPage() {
                     onChange={(e) =>
                       setForm({ ...form, title: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-white/80 rounded-xl bg-white/60 text-[#0f1c3f] focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40"
                     placeholder="Например: Основы Python"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Курс</label>
+                  <label className="block text-sm font-medium mb-1 text-[#4a5578]">
+                    Курс
+                  </label>
                   <select
                     value={form.courseId}
                     onChange={(e) =>
                       setForm({ ...form, courseId: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-white/80 rounded-xl bg-white/60 text-[#0f1c3f]"
                   >
                     <option value="">— Выберите —</option>
                     {courses.map((c) => (
@@ -396,7 +424,7 @@ export default function TeacherTestsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-[#4a5578]">
                   Описание
                 </label>
                 <textarea
@@ -405,13 +433,13 @@ export default function TeacherTestsPage() {
                   onChange={(e) =>
                     setForm({ ...form, description: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-white/80 rounded-xl bg-white/60 text-[#0f1c3f] focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm font-medium mb-1 text-[#4a5578]">
                     Лимит времени (мин, 0 = без)
                   </label>
                   <input
@@ -423,11 +451,11 @@ export default function TeacherTestsPage() {
                         timeLimit: parseInt(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                    className="w-full px-4 py-3 border border-white/80 rounded-xl bg-white/60 text-[#0f1c3f]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm font-medium mb-1 text-[#4a5578]">
                     Проходной балл (%)
                   </label>
                   <input
@@ -439,22 +467,72 @@ export default function TeacherTestsPage() {
                         passScore: parseInt(e.target.value) || 70,
                       })
                     }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                    className="w-full px-4 py-3 border border-white/80 rounded-xl bg-white/60 text-[#0f1c3f]"
                   />
                 </div>
               </div>
 
-              <hr className="border-white/40" />
+              {/* ВЫБОР КЛАССОВ */}
+              <div className="glass p-4 rounded-xl border border-white/60">
+                <label className="block text-sm font-medium mb-3 text-[#4a5578] flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-[#3561d4]" />
+                  Для каких классов этот тест?
+                </label>
+
+                <div className="flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={selectAllGrades}
+                    className="text-xs px-3 py-1.5 bg-[#4f7cff] text-white rounded-lg hover:opacity-90"
+                  >
+                    Все классы
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearAllGrades}
+                    className="text-xs px-3 py-1.5 bg-white/60 text-[#4a5578] rounded-lg hover:bg-white border border-white/80"
+                  >
+                    Сбросить
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                  {Array.from({ length: 11 }, (_, i) => i + 1).map((g) => {
+                    const active = grades.includes(g);
+                    return (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => toggleGrade(g)}
+                        className={`aspect-square rounded-xl font-semibold text-sm transition-all flex items-center justify-center ${
+                          active
+                            ? "bg-gradient-to-br from-[#4f7cff] to-[#7c5cff] text-white shadow-lg shadow-indigo-500/40 scale-105"
+                            : "bg-white/60 text-[#4a5578] hover:bg-white border border-white/80"
+                        }`}
+                      >
+                        {active ? <Check className="w-4 h-4" /> : g}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-[#8a95b8] mt-2">
+                  {grades.length === 0
+                    ? "Классы не выбраны — тест увидят все ученики"
+                    : `Тест увидят ученики классов: ${grades.join(", ")}`}
+                </p>
+              </div>
+
+              <hr className="border-white/60" />
 
               {/* ВЫБОР СПОСОБА ДОБАВЛЕНИЯ */}
-              <div className="flex gap-2 p-1 glass rounded-2xl border border-white/40">
+              <div className="flex gap-2 p-1 glass rounded-2xl">
                 <button
                   type="button"
                   onClick={() => setImportMode("manual")}
                   className={`flex-1 py-2.5 rounded-xl font-medium transition ${
                     importMode === "manual"
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "text-gray-600 hover:bg-white/50"
+                      ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg"
+                      : "text-[#4a5578] hover:bg-white/50"
                   }`}
                 >
                   ✍️ Вручную
@@ -464,8 +542,8 @@ export default function TeacherTestsPage() {
                   onClick={() => setImportMode("file")}
                   className={`flex-1 py-2.5 rounded-xl font-medium transition ${
                     importMode === "file"
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "text-gray-600 hover:bg-white/50"
+                      ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg"
+                      : "text-[#4a5578] hover:bg-white/50"
                   }`}
                 >
                   📁 Импорт из файла
@@ -473,12 +551,12 @@ export default function TeacherTestsPage() {
               </div>
 
               {importMode === "file" && (
-                <div className="glass p-6 rounded-2xl border-2 border-dashed border-blue-300 text-center">
-                  <FileSpreadsheet className="w-12 h-12 text-blue-500 mx-auto mb-3" />
-                  <h4 className="font-bold mb-2">
+                <div className="glass p-6 rounded-2xl border-2 border-dashed border-[#4f7cff]/40 text-center">
+                  <FileSpreadsheet className="w-12 h-12 text-[#3561d4] mx-auto mb-3" />
+                  <h4 className="font-bold mb-2 text-[#0f1c3f]">
                     Загрузите файл с вопросами
                   </h4>
-                  <p className="text-sm text-gray-500 mb-4">
+                  <p className="text-sm text-[#4a5578] mb-4">
                     Формат CSV (открывается в Excel):
                     <br />
                     <code className="text-xs bg-white/60 px-2 py-1 rounded mt-2 inline-block">
@@ -491,7 +569,7 @@ export default function TeacherTestsPage() {
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={importing}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition flex items-center gap-2 shadow-lg disabled:opacity-50"
+                      className="bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition flex items-center gap-2 shadow-lg shadow-indigo-500/30 disabled:opacity-50"
                     >
                       {importing ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -503,7 +581,7 @@ export default function TeacherTestsPage() {
                     <button
                       type="button"
                       onClick={downloadTemplate}
-                      className="glass px-4 py-3 rounded-xl border border-white/40 text-sm font-medium hover:bg-white/60 transition flex items-center gap-2"
+                      className="glass-card px-4 py-3 rounded-xl text-sm font-medium hover:bg-white/60 transition flex items-center gap-2 text-[#4a5578]"
                     >
                       <Download className="w-4 h-4" /> Скачать шаблон
                     </button>
@@ -522,12 +600,12 @@ export default function TeacherTestsPage() {
               {importMode === "manual" && (
                 <>
                   <div className="flex items-center justify-between">
-                    <h4 className="font-bold">
+                    <h4 className="font-bold text-[#0f1c3f]">
                       Вопросы ({questions.length})
                     </h4>
                     <button
                       onClick={addQuestion}
-                      className="text-sm text-blue-600 font-medium hover:underline"
+                      className="text-sm text-[#3561d4] font-medium hover:underline"
                     >
                       + Добавить вопрос
                     </button>
@@ -536,10 +614,10 @@ export default function TeacherTestsPage() {
                   {questions.map((q, qi) => (
                     <div
                       key={qi}
-                      className="glass p-4 rounded-xl border border-white/40"
+                      className="glass p-4 rounded-xl border border-white/60"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <span className="font-medium">
+                        <span className="font-medium text-[#0f1c3f]">
                           Вопрос {qi + 1}
                         </span>
                         {questions.length > 1 && (
@@ -557,7 +635,7 @@ export default function TeacherTestsPage() {
                         onChange={(e) =>
                           updateQuestion(qi, "text", e.target.value)
                         }
-                        className="w-full px-4 py-2 border border-gray-200 rounded-xl mb-3"
+                        className="w-full px-4 py-2 border border-white/80 rounded-xl mb-3 bg-white/60 text-[#0f1c3f]"
                         placeholder="Текст вопроса"
                       />
 
@@ -575,7 +653,7 @@ export default function TeacherTestsPage() {
                                   e.target.checked
                                 )
                               }
-                              className="w-5 h-5 rounded cursor-pointer accent-blue-600"
+                              className="w-5 h-5 rounded cursor-pointer accent-[#4f7cff]"
                               title="Правильный ответ"
                             />
                             <input
@@ -583,7 +661,7 @@ export default function TeacherTestsPage() {
                               onChange={(e) =>
                                 updateOption(qi, oi, "text", e.target.value)
                               }
-                              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                              className="flex-1 px-3 py-2 border border-white/80 rounded-lg text-sm bg-white/60 text-[#0f1c3f]"
                               placeholder={`Вариант ${oi + 1}`}
                             />
                             {q.options.length > 2 && (
@@ -600,7 +678,7 @@ export default function TeacherTestsPage() {
 
                       <button
                         onClick={() => addOption(qi)}
-                        className="text-xs text-blue-600 hover:underline"
+                        className="text-xs text-[#3561d4] hover:underline"
                       >
                         + Добавить вариант
                       </button>
@@ -610,17 +688,17 @@ export default function TeacherTestsPage() {
               )}
             </div>
 
-            <div className="flex gap-3 mt-6 pt-4 border-t border-white/40 sticky bottom-0 bg-transparent">
+            <div className="flex gap-3 mt-6 pt-4 border-t border-white/60 sticky bottom-0 bg-transparent">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50"
+                className="flex-1 px-4 py-3 border border-white/80 rounded-xl hover:bg-white/60 text-[#4a5578]"
               >
                 Отмена
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={saving}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg"
+                className="flex-1 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-4 py-3 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-indigo-500/30"
               >
                 {saving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
