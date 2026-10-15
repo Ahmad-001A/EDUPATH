@@ -66,6 +66,14 @@ export default function TeacherTestsPage() {
     }
   }, [status, role, router]);
 
+  useEffect(() => {
+    if (showModal) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "auto";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showModal]);
+
   const fetchAll = async () => {
     setLoading(true);
     try {
@@ -151,7 +159,6 @@ export default function TeacherTestsPage() {
     setQuestions(copy);
   };
 
-  // Импорт из файла
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -357,62 +364,71 @@ export default function TeacherTestsPage() {
         </div>
       )}
 
-      {/* БОЛЬШАЯ МОДАЛКА НА ВЕСЬ ЭКРАН */}
+      {/* МОДАЛКА — нормальные размеры, с отступами */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-2 md:p-4">
-          <div className="bg-gradient-to-br from-white via-[#f8f5ff] to-[#fff5f8] rounded-3xl w-full max-w-[95vw] lg:max-w-7xl h-[95vh] modal-animate border-4 border-white shadow-2xl flex flex-col overflow-hidden">
-            {/* Шапка (фиксированная) */}
-            <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b-2 border-white/60 flex-shrink-0 bg-white/40">
-              <h3 className="text-2xl md:text-3xl font-bold text-[#0f1c3f] flex items-center gap-3">
-                <ClipboardList className="w-8 h-8 text-[#3561d4]" />
+        <div
+          className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-start md:items-center justify-center p-4 md:p-8 overflow-y-auto"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-white via-[#f8f5ff] to-[#fff5f8] rounded-3xl w-full max-w-3xl border-4 border-white shadow-2xl flex flex-col my-auto modal-animate"
+            style={{ maxHeight: "85vh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Шапка модалки */}
+            <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b-2 border-white/60 flex-shrink-0 bg-white/60 rounded-t-3xl">
+              <h3 className="text-xl md:text-2xl font-bold text-[#0f1c3f] flex items-center gap-3">
+                <ClipboardList className="w-7 h-7 text-[#3561d4]" />
                 Новый тест
               </h3>
               <button
                 onClick={() => setShowModal(false)}
                 className="p-2 hover:bg-white/60 rounded-xl transition"
               >
-                <X className="w-7 h-7 text-[#4a5578]" />
+                <X className="w-6 h-6 text-[#4a5578]" />
               </button>
             </div>
 
-            {/* Прокручиваемое содержимое */}
-            <div className="flex-1 overflow-y-auto px-6 md:px-10 py-6">
-              <div className="space-y-5 max-w-6xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
-                      Название теста *
-                    </label>
-                    <input
-                      value={form.title}
-                      onChange={(e) =>
-                        setForm({ ...form, title: e.target.value })
-                      }
-                      className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
-                      placeholder="Например: Основы Python"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
-                      Курс *
-                    </label>
-                    <select
-                      value={form.courseId}
-                      onChange={(e) =>
-                        setForm({ ...form, courseId: e.target.value })
-                      }
-                      className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
-                    >
-                      <option value="">— Выберите —</option>
-                      {courses.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+            {/* Прокрутка контента */}
+            <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6">
+              <div className="space-y-6">
+                {/* Название */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
+                    Название теста *
+                  </label>
+                  <input
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
+                    className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                    placeholder="Например: Основы Python"
+                  />
                 </div>
 
+                {/* Курс */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
+                    Курс *
+                  </label>
+                  <select
+                    value={form.courseId}
+                    onChange={(e) =>
+                      setForm({ ...form, courseId: e.target.value })
+                    }
+                    className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                  >
+                    <option value="">— Выберите —</option>
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Описание */}
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
                     Описание
@@ -423,14 +439,15 @@ export default function TeacherTestsPage() {
                     onChange={(e) =>
                       setForm({ ...form, description: e.target.value })
                     }
-                    className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition resize-none"
+                    className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition resize-none"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Время / Балл */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
-                      Лимит времени (мин, 0 = без)
+                      Лимит времени (мин)
                     </label>
                     <input
                       type="number"
@@ -441,7 +458,7 @@ export default function TeacherTestsPage() {
                           timeLimit: parseInt(e.target.value) || 0,
                         })
                       }
-                      className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                      className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
                     />
                   </div>
                   <div>
@@ -457,16 +474,16 @@ export default function TeacherTestsPage() {
                           passScore: parseInt(e.target.value) || 70,
                         })
                       }
-                      className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                      className="w-full px-4 py-3 border-2 border-white/80 rounded-2xl bg-white/80 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
                     />
                   </div>
                 </div>
 
                 {/* КЛАССЫ */}
-                <div className="bg-gradient-to-br from-[#eef0ff] via-[#f5eefe] to-[#ffeef5] rounded-3xl p-6 border-2 border-white">
+                <div className="bg-gradient-to-br from-[#eef0ff] via-[#f5eefe] to-[#ffeef5] rounded-3xl p-5 border-2 border-white">
                   <label className="block text-base font-bold mb-4 text-[#0f1c3f] flex items-center gap-2">
-                    <GraduationCap className="w-6 h-6 text-[#3561d4]" />
-                    Для каких классов этот тест? *
+                    <GraduationCap className="w-5 h-5 text-[#3561d4]" />
+                    Для каких классов?
                   </label>
 
                   <div className="flex gap-2 mb-4 flex-wrap">
@@ -486,7 +503,7 @@ export default function TeacherTestsPage() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-6 md:grid-cols-11 gap-2">
+                  <div className="grid grid-cols-6 gap-2">
                     {Array.from({ length: 11 }, (_, i) => i + 1).map((g) => {
                       const active = grades.includes(g);
                       return (
@@ -494,13 +511,13 @@ export default function TeacherTestsPage() {
                           key={g}
                           type="button"
                           onClick={() => toggleGrade(g)}
-                          className={`aspect-square rounded-2xl font-bold text-lg transition-all flex items-center justify-center ${
+                          className={`aspect-square rounded-2xl font-bold text-base transition-all flex items-center justify-center ${
                             active
-                              ? "bg-gradient-to-br from-[#4f7cff] to-[#7c5cff] text-white shadow-xl shadow-indigo-500/40 scale-110"
-                              : "bg-white text-[#4a5578] hover:bg-[#eef0ff] border-2 border-white shadow-md hover:scale-105"
+                              ? "bg-gradient-to-br from-[#4f7cff] to-[#7c5cff] text-white shadow-xl shadow-indigo-500/40 scale-105"
+                              : "bg-white text-[#4a5578] hover:bg-[#eef0ff] border-2 border-white shadow-sm hover:scale-105"
                           }`}
                         >
-                          {active ? <Check className="w-6 h-6" /> : g}
+                          {active ? <Check className="w-5 h-5" /> : g}
                         </button>
                       );
                     })}
@@ -514,21 +531,21 @@ export default function TeacherTestsPage() {
                     }`}
                   >
                     {grades.length === 0
-                      ? "⚠️ Классы не выбраны — тест увидят ВСЕ ученики"
-                      : `✅ Тест увидят ученики классов: ${grades.join(", ")}`}
+                      ? "⚠️ Классы не выбраны — увидят все"
+                      : `✅ Классы: ${grades.join(", ")}`}
                   </div>
                 </div>
 
                 <hr className="border-white/60" />
 
-                {/* ВЫБОР СПОСОБА */}
-                <div className="flex gap-2 p-1.5 bg-white/60 rounded-2xl border border-white/80">
+                {/* СПОСОБ */}
+                <div className="flex gap-2 p-1.5 bg-white/70 rounded-2xl border-2 border-white/80">
                   <button
                     type="button"
                     onClick={() => setImportMode("manual")}
                     className={`flex-1 py-3 rounded-xl font-semibold transition ${
                       importMode === "manual"
-                        ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg shadow-indigo-500/30"
+                        ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg"
                         : "text-[#4a5578] hover:bg-white/80"
                     }`}
                   >
@@ -539,48 +556,47 @@ export default function TeacherTestsPage() {
                     onClick={() => setImportMode("file")}
                     className={`flex-1 py-3 rounded-xl font-semibold transition ${
                       importMode === "file"
-                        ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg shadow-indigo-500/30"
+                        ? "bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white shadow-lg"
                         : "text-[#4a5578] hover:bg-white/80"
                     }`}
                   >
-                    📁 Импорт из файла
+                    📁 Импорт
                   </button>
                 </div>
 
                 {importMode === "file" && (
-                  <div className="bg-gradient-to-br from-[#eef0ff] to-[#f5eefe] p-8 rounded-3xl border-2 border-dashed border-[#4f7cff]/50 text-center">
-                    <FileSpreadsheet className="w-16 h-16 text-[#3561d4] mx-auto mb-4" />
-                    <h4 className="font-bold text-lg mb-3 text-[#0f1c3f]">
+                  <div className="bg-gradient-to-br from-[#eef0ff] to-[#f5eefe] p-6 rounded-3xl border-2 border-dashed border-[#4f7cff]/50 text-center">
+                    <FileSpreadsheet className="w-14 h-14 text-[#3561d4] mx-auto mb-3" />
+                    <h4 className="font-bold mb-2 text-[#0f1c3f]">
                       Загрузите файл с вопросами
                     </h4>
-                    <p className="text-sm text-[#4a5578] mb-5">
-                      Формат CSV (открывается в Excel):
-                      <br />
-                      <code className="text-xs bg-white/70 px-3 py-1.5 rounded-lg mt-2 inline-block font-mono">
+                    <p className="text-xs text-[#4a5578] mb-4">
+                      Формат CSV:{" "}
+                      <code className="bg-white/70 px-2 py-1 rounded">
                         Вопрос;В1;В2;В3;В4;Правильный;Баллы
                       </code>
                     </p>
 
-                    <div className="flex gap-3 justify-center flex-wrap">
+                    <div className="flex gap-2 justify-center flex-wrap">
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={importing}
-                        className="bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition flex items-center gap-2 shadow-lg shadow-indigo-500/30 disabled:opacity-50"
+                        className="bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-5 py-2.5 rounded-xl font-semibold hover:opacity-90 transition flex items-center gap-2 shadow-lg disabled:opacity-50"
                       >
                         {importing ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          <Upload className="w-5 h-5" />
+                          <Upload className="w-4 h-4" />
                         )}
                         Выбрать файл
                       </button>
                       <button
                         type="button"
                         onClick={downloadTemplate}
-                        className="bg-white px-5 py-3 rounded-xl text-sm font-semibold hover:bg-white/80 transition flex items-center gap-2 text-[#4a5578] border-2 border-white shadow-md"
+                        className="bg-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition flex items-center gap-2 text-[#4a5578] border-2 border-white shadow-md"
                       >
-                        <Download className="w-4 h-4" /> Скачать шаблон
+                        <Download className="w-4 h-4" /> Шаблон
                       </button>
                     </div>
 
@@ -597,30 +613,30 @@ export default function TeacherTestsPage() {
                 {importMode === "manual" && (
                   <>
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-lg text-[#0f1c3f]">
+                      <h4 className="font-bold text-base text-[#0f1c3f]">
                         Вопросы ({questions.length})
                       </h4>
                       <button
                         onClick={addQuestion}
                         className="text-sm text-[#3561d4] font-semibold hover:underline"
                       >
-                        + Добавить вопрос
+                        + Добавить
                       </button>
                     </div>
 
                     {questions.map((q, qi) => (
                       <div
                         key={qi}
-                        className="bg-gradient-to-br from-white to-[#f8f5ff] p-5 rounded-2xl border-2 border-white shadow-lg"
+                        className="bg-gradient-to-br from-white to-[#f8f5ff] p-4 rounded-2xl border-2 border-white shadow-md"
                       >
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="font-bold text-[#0f1c3f] text-base">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-bold text-[#0f1c3f] text-sm">
                             Вопрос {qi + 1}
                           </span>
                           {questions.length > 1 && (
                             <button
                               onClick={() => removeQuestion(qi)}
-                              className="text-red-600 hover:bg-red-50 p-2 rounded-lg"
+                              className="text-red-600 hover:bg-red-50 p-1.5 rounded-lg"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -632,13 +648,13 @@ export default function TeacherTestsPage() {
                           onChange={(e) =>
                             updateQuestion(qi, "text", e.target.value)
                           }
-                          className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl mb-4 bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                          className="w-full px-4 py-3 border-2 border-white/80 rounded-xl mb-3 bg-white/80 text-[#0f1c3f] text-sm focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
                           placeholder="Текст вопроса"
                         />
 
-                        <div className="space-y-3 mb-4">
+                        <div className="space-y-2 mb-3">
                           {q.options.map((opt, oi) => (
-                            <div key={oi} className="flex items-center gap-3">
+                            <div key={oi} className="flex items-center gap-2">
                               <input
                                 type="checkbox"
                                 checked={opt.isCorrect}
@@ -650,7 +666,7 @@ export default function TeacherTestsPage() {
                                     e.target.checked
                                   )
                                 }
-                                className="w-6 h-6 rounded cursor-pointer accent-[#4f7cff]"
+                                className="w-5 h-5 rounded cursor-pointer accent-[#4f7cff]"
                                 title="Правильный ответ"
                               />
                               <input
@@ -658,15 +674,15 @@ export default function TeacherTestsPage() {
                                 onChange={(e) =>
                                   updateOption(qi, oi, "text", e.target.value)
                                 }
-                                className="flex-1 px-4 py-3 border-2 border-white/80 rounded-xl text-sm bg-white/70 text-[#0f1c3f] focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
+                                className="flex-1 px-3 py-2 border-2 border-white/80 rounded-xl text-sm bg-white/80 text-[#0f1c3f] focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
                                 placeholder={`Вариант ${oi + 1}`}
                               />
                               {q.options.length > 2 && (
                                 <button
                                   onClick={() => removeOption(qi, oi)}
-                                  className="text-red-500 hover:bg-red-50 p-2 rounded-lg"
+                                  className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"
                                 >
-                                  <X className="w-5 h-5" />
+                                  <X className="w-4 h-4" />
                                 </button>
                               )}
                             </div>
@@ -675,9 +691,9 @@ export default function TeacherTestsPage() {
 
                         <button
                           onClick={() => addOption(qi)}
-                          className="text-sm text-[#3561d4] font-semibold hover:underline"
+                          className="text-xs text-[#3561d4] font-semibold hover:underline"
                         >
-                          + Добавить вариант
+                          + Вариант
                         </button>
                       </div>
                     ))}
@@ -686,18 +702,18 @@ export default function TeacherTestsPage() {
               </div>
             </div>
 
-            {/* Фиксированные кнопки внизу */}
-            <div className="flex gap-3 px-6 md:px-10 py-5 border-t-2 border-white/60 flex-shrink-0 bg-white/40">
+            {/* Кнопки внизу */}
+            <div className="flex gap-3 px-6 md:px-8 py-4 border-t-2 border-white/60 flex-shrink-0 bg-white/60 rounded-b-3xl">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 md:flex-none md:px-8 px-5 py-4 border-2 border-white/80 rounded-2xl hover:bg-white/60 text-[#4a5578] font-medium transition"
+                className="px-6 py-3 border-2 border-white/80 rounded-2xl hover:bg-white/60 text-[#4a5578] font-medium transition"
               >
                 Отмена
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={saving}
-                className="flex-1 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-5 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-xl shadow-indigo-500/30 hover:opacity-90 transition text-base"
+                className="flex-1 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-xl shadow-indigo-500/30 hover:opacity-90 transition"
               >
                 {saving ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
