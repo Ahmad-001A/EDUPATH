@@ -30,20 +30,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = (user as any).role;
-        token.id = user.id;
+callbacks: {
+  async jwt({ token, user, trigger }) {
+    if (user) {
+      token.role = (user as any).role;
+      token.id = user.id;
+      token.grade = (user as any).grade;
+    }
+    // Обновляем при trigger === "update"
+    if (trigger === "update" && token.id) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.id as string },
+        select: { role: true, grade: true },
+      });
+      if (dbUser) {
+        token.role = dbUser.role;
+        token.grade = dbUser.grade;
       }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).role = token.role;
-        (session.user as any).id = token.id;
-      }
-      return session;
-    },
+    }
+    return token;
   },
-});
+  async session({ session, token }) {
+    if (session.user) {
+      (session.user as any).role = token.role;
+      (session.user as any).id = token.id;
+      (session.user as any).grade = token.grade;
+    }
+    return session;
+  },
+},
