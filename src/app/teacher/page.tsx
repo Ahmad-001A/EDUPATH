@@ -17,6 +17,7 @@ import {
   CheckCircle,
   XCircle,
   ClipboardList,
+  GraduationCap,
 } from "lucide-react";
 
 type Lesson = {
@@ -34,6 +35,7 @@ type Course = {
   description: string;
   image: string | null;
   category: string;
+  grades: number[];
   modules: Module[];
 };
 type Student = {
@@ -178,27 +180,38 @@ export default function TeacherPage() {
   };
 
   if (status === "loading" || loading) {
-    return <p className="text-gray-500">Загрузка...</p>;
+    return <p className="text-[#8a95b8]">Загрузка...</p>;
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold gradient-text">
-          Учительская панель
-        </h1>
-        <p className="text-gray-500 mt-1">
-          Управляйте курсами, уроками и следите за учениками
-        </p>
+      {/* Заголовок + кнопка создания курса */}
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-[#0f1c3f] flex items-center gap-3">
+            <GraduationCap className="w-9 h-9 text-[#3561d4]" />
+            Учительская панель
+          </h1>
+          <p className="text-[#4a5578] mt-2">
+            Управляйте курсами, уроками и следите за учениками
+          </p>
+        </div>
+        <Link
+          href="/teacher/course/new"
+          className="bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-6 py-3 rounded-2xl font-bold hover:opacity-90 transition flex items-center gap-2 shadow-xl shadow-indigo-500/30"
+        >
+          <Plus className="w-5 h-5" /> Создать курс
+        </Link>
       </div>
 
-      <div className="flex gap-2 border-b border-white/40 flex-wrap">
+      {/* Вкладки */}
+      <div className="flex gap-2 border-b border-white/60 flex-wrap">
         <button
           onClick={() => setTab("courses")}
           className={`px-5 py-3 font-medium transition border-b-2 ${
             tab === "courses"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-gray-500 hover:text-blue-600"
+              ? "border-[#4f7cff] text-[#3561d4]"
+              : "border-transparent text-[#4a5578] hover:text-[#3561d4]"
           }`}
         >
           <BookOpen className="w-4 h-4 inline mr-2" /> Мои курсы
@@ -207,8 +220,8 @@ export default function TeacherPage() {
           onClick={() => setTab("students")}
           className={`px-5 py-3 font-medium transition border-b-2 ${
             tab === "students"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-gray-500 hover:text-blue-600"
+              ? "border-[#4f7cff] text-[#3561d4]"
+              : "border-transparent text-[#4a5578] hover:text-[#3561d4]"
           }`}
         >
           <Users className="w-4 h-4 inline mr-2" /> Мои ученики (
@@ -218,8 +231,8 @@ export default function TeacherPage() {
           onClick={() => setTab("requests")}
           className={`px-5 py-3 font-medium transition border-b-2 ${
             tab === "requests"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-gray-500 hover:text-blue-600"
+              ? "border-[#4f7cff] text-[#3561d4]"
+              : "border-transparent text-[#4a5578] hover:text-[#3561d4]"
           }`}
         >
           <Award className="w-4 h-4 inline mr-2" /> Заявки на сертификат (
@@ -229,47 +242,67 @@ export default function TeacherPage() {
           onClick={() => setTab("tests")}
           className={`px-5 py-3 font-medium transition border-b-2 ${
             tab === "tests"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-gray-500 hover:text-blue-600"
+              ? "border-[#4f7cff] text-[#3561d4]"
+              : "border-transparent text-[#4a5578] hover:text-[#3561d4]"
           }`}
         >
           <ClipboardList className="w-4 h-4 inline mr-2" /> Мои тесты
         </button>
       </div>
 
+      {/* Мои курсы */}
       {tab === "courses" && (
         <>
           {courses.length === 0 ? (
-            <div className="glass p-12 rounded-2xl text-center border border-white/40">
-              <p className="text-gray-500">
-                Вам пока не назначен ни один курс.
-              </p>
-              <p className="text-sm text-gray-400 mt-2">
-                Обратитесь к администратору.
-              </p>
+            <div className="glass-card p-12 rounded-2xl text-center">
+              <BookOpen className="w-12 h-12 text-[#8a95b8] mx-auto mb-3" />
+              <p className="text-[#4a5578]">У вас пока нет курсов</p>
+              <Link
+                href="/teacher/course/new"
+                className="inline-block mt-4 text-[#3561d4] font-semibold hover:underline"
+              >
+                Создать первый курс →
+              </Link>
             </div>
           ) : (
             <div className="space-y-6">
               {courses.map((course) => (
                 <div
                   key={course.id}
-                  className="glass rounded-2xl border border-white/40 overflow-hidden"
+                  className="glass-card rounded-2xl overflow-hidden"
                 >
-                  <div className="p-6 border-b border-white/40 flex items-center justify-between flex-wrap gap-4">
+                  <div className="p-6 border-b border-white/60 flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-4">
                       <img
                         src={course.image || ""}
                         alt=""
-                        className="w-16 h-16 rounded-xl object-cover"
+                        className="w-16 h-16 rounded-xl object-cover shadow-lg"
                       />
                       <div>
-                        <h2 className="text-xl font-bold flex items-center gap-2">
-                          <BookOpen className="w-5 h-5 text-blue-600" />{" "}
+                        <h2 className="text-xl font-bold flex items-center gap-2 text-[#0f1c3f]">
+                          <BookOpen className="w-5 h-5 text-[#3561d4]" />{" "}
                           {course.title}
                         </h2>
-                        <p className="text-sm text-gray-500">
-                          {course.category}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-sm text-[#4a5578]">
+                            {course.category}
+                          </p>
+                          {course.grades && course.grades.length > 0 && (
+                            <>
+                              <span className="text-[#8a95b8]">·</span>
+                              <div className="flex flex-wrap gap-1">
+                                {course.grades.map((g) => (
+                                  <span
+                                    key={g}
+                                    className="text-[10px] font-semibold bg-[#eef0ff] text-[#7c5cff] px-1.5 py-0.5 rounded-full"
+                                  >
+                                    {g} кл.
+                                  </span>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <button
@@ -277,7 +310,7 @@ export default function TeacherPage() {
                         setNewModule({ courseId: course.id, title: "" });
                         setShowModuleModal(true);
                       }}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition flex items-center gap-2"
+                      className="bg-[#4f7cff] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#3a6bef] transition flex items-center gap-2 shadow-lg shadow-indigo-500/30"
                     >
                       <Plus className="w-4 h-4" /> Модуль
                     </button>
@@ -285,14 +318,14 @@ export default function TeacherPage() {
 
                   <div className="p-6 space-y-3">
                     {course.modules.length === 0 ? (
-                      <p className="text-gray-500 text-sm">
+                      <p className="text-[#4a5578] text-sm">
                         Модулей пока нет. Создайте первый!
                       </p>
                     ) : (
                       course.modules.map((mod) => (
                         <div
                           key={mod.id}
-                          className="border border-white/40 rounded-xl overflow-hidden bg-white/40"
+                          className="border border-white/60 rounded-xl overflow-hidden bg-white/40"
                         >
                           <div
                             className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/60"
@@ -304,10 +337,10 @@ export default function TeacherPage() {
                               ) : (
                                 <ChevronRight className="w-5 h-5" />
                               )}
-                              <span className="font-medium">
+                              <span className="font-medium text-[#0f1c3f]">
                                 Модуль {mod.order}. {mod.title}
                               </span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-[#8a95b8]">
                                 ({mod.lessons.length} уроков)
                               </span>
                             </div>
@@ -326,7 +359,7 @@ export default function TeacherPage() {
                                   });
                                   setShowLessonModal(true);
                                 }}
-                                className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg"
+                                className="text-[#3561d4] hover:bg-[#eef0ff] p-2 rounded-lg"
                                 title="Добавить урок"
                               >
                                 <Plus className="w-4 h-4" />
@@ -342,9 +375,9 @@ export default function TeacherPage() {
                           </div>
 
                           {openModules.has(mod.id) && (
-                            <div className="border-t border-white/40 p-3 space-y-2">
+                            <div className="border-t border-white/60 p-3 space-y-2">
                               {mod.lessons.length === 0 ? (
-                                <p className="text-sm text-gray-500 text-center py-2">
+                                <p className="text-sm text-[#8a95b8] text-center py-2">
                                   Уроков нет
                                 </p>
                               ) : (
@@ -357,13 +390,13 @@ export default function TeacherPage() {
                                       {lesson.videoUrl ? (
                                         <Video className="w-4 h-4 text-purple-600" />
                                       ) : (
-                                        <FileText className="w-4 h-4 text-blue-600" />
+                                        <FileText className="w-4 h-4 text-[#3561d4]" />
                                       )}
-                                      <span className="text-sm font-medium">
+                                      <span className="text-sm font-medium text-[#0f1c3f]">
                                         {lesson.order}. {lesson.title}
                                       </span>
                                       {lesson.videoDuration ? (
-                                        <span className="text-xs text-gray-400">
+                                        <span className="text-xs text-[#8a95b8]">
                                           (
                                           {Math.floor(
                                             (lesson.videoDuration || 0) / 60
@@ -398,114 +431,115 @@ export default function TeacherPage() {
         </>
       )}
 
+      {/* Мои ученики */}
       {tab === "students" && (
-        <div className="glass rounded-2xl border border-white/40 overflow-hidden">
+        <div className="glass-card rounded-2xl overflow-hidden">
           {students.length === 0 ? (
             <div className="p-12 text-center">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">
+              <Users className="w-12 h-12 text-[#8a95b8] mx-auto mb-3" />
+              <p className="text-[#4a5578]">
                 Пока никто не проходил ваши уроки
               </p>
             </div>
           ) : (
-            <table className="w-full">
-              <thead className="bg-white/40 border-b border-white/40">
-                <tr>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
-                    Ученик
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
-                    Email
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
-                    Прогресс
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
-                    %
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((s) => (
-                  <tr
-                    key={s.id}
-                    className="border-b border-white/30 hover:bg-white/30"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium">
-                          {s.name?.[0]?.toUpperCase() || "U"}
-                        </div>
-                        <span className="font-medium">
-                          {s.name || "Без имени"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {s.email}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="w-full max-w-xs">
-                        <div className="flex justify-between text-xs text-gray-500 mb-1">
-                          <span>
-                            {s.completedLessons} / {s.totalLessons}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-white/40 border-b border-white/60">
+                  <tr>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-[#4a5578]">
+                      Ученик
+                    </th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-[#4a5578]">
+                      Email
+                    </th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-[#4a5578]">
+                      Прогресс
+                    </th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-[#4a5578]">
+                      %
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.map((s) => (
+                    <tr
+                      key={s.id}
+                      className="border-b border-white/40 hover:bg-white/40"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-gradient-to-br from-[#4f7cff] to-[#7c5cff] rounded-full flex items-center justify-center text-white font-medium">
+                            {s.name?.[0]?.toUpperCase() || "U"}
+                          </div>
+                          <span className="font-medium text-[#0f1c3f]">
+                            {s.name || "Без имени"}
                           </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full transition-all"
-                            style={{ width: `${s.percent}%` }}
-                          ></div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[#4a5578]">
+                        {s.email}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="w-full max-w-xs">
+                          <div className="flex justify-between text-xs text-[#8a95b8] mb-1">
+                            <span>
+                              {s.completedLessons} / {s.totalLessons}
+                            </span>
+                          </div>
+                          <div className="w-full bg-white/60 rounded-full h-2">
+                            <div
+                              className="bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] h-2 rounded-full transition-all"
+                              style={{ width: `${s.percent}%` }}
+                            ></div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full ${
-                          s.percent === 100
-                            ? "bg-green-100 text-green-700"
-                            : s.percent >= 50
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {s.percent}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            s.percent === 100
+                              ? "bg-green-100 text-green-700"
+                              : s.percent >= 50
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          {s.percent}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
 
+      {/* Заявки на сертификат */}
       {tab === "requests" && (
         <div className="space-y-4">
           {requests.length === 0 ? (
-            <div className="glass p-12 rounded-2xl text-center border border-white/40">
-              <Award className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">Заявок на сертификат пока нет</p>
+            <div className="glass-card p-12 rounded-2xl text-center">
+              <Award className="w-12 h-12 text-[#8a95b8] mx-auto mb-3" />
+              <p className="text-[#4a5578]">Заявок на сертификат пока нет</p>
             </div>
           ) : (
             requests.map((req) => (
-              <div
-                key={req.id}
-                className="glass p-6 rounded-2xl border border-white/40"
-              >
+              <div key={req.id} className="glass-card p-6 rounded-2xl">
                 <div className="flex items-start justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-lg font-bold">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#4f7cff] to-[#7c5cff] rounded-full flex items-center justify-center text-white text-lg font-bold">
                       {req.user?.name?.[0]?.toUpperCase() || "U"}
                     </div>
                     <div>
-                      <p className="font-bold">
+                      <p className="font-bold text-[#0f1c3f]">
                         {req.user?.name || "Без имени"}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-[#8a95b8]">
                         {req.user?.email}
                       </p>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-[#4a5578] mt-1">
                         📚 Курс: <b>{req.course?.title}</b>
                       </p>
                     </div>
@@ -513,7 +547,7 @@ export default function TeacherPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => approveRequest(req.id)}
-                      className="bg-green-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-green-700 transition flex items-center gap-2"
+                      className="bg-green-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-green-700 transition flex items-center gap-2 shadow-lg"
                     >
                       <CheckCircle className="w-4 h-4" /> Одобрить
                     </button>
@@ -526,18 +560,18 @@ export default function TeacherPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-white/40">
+                <div className="mt-4 pt-4 border-t border-white/60">
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-500">
+                    <span className="text-[#4a5578]">
                       Прогресс ученика по курсу
                     </span>
-                    <span className="font-bold">
+                    <span className="font-bold text-[#0f1c3f]">
                       {req.completedLessons} / {req.totalLessons} уроков
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-white/60 rounded-full h-2">
                     <div
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
+                      className="bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] h-2 rounded-full transition-all"
                       style={{
                         width: `${
                           req.totalLessons === 0
@@ -554,60 +588,72 @@ export default function TeacherPage() {
         </div>
       )}
 
+      {/* Мои тесты */}
       {tab === "tests" && (
-        <div className="glass p-12 rounded-2xl text-center border border-white/40">
-          <ClipboardList className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-bold mb-2">Тесты для ваших курсов</h3>
-          <p className="text-gray-500 mb-6">
+        <div className="glass-card p-12 rounded-2xl text-center">
+          <ClipboardList className="w-16 h-16 text-[#8a95b8] mx-auto mb-4" />
+          <h3 className="text-lg font-bold mb-2 text-[#0f1c3f]">
+            Тесты для ваших курсов
+          </h3>
+          <p className="text-[#4a5578] mb-6">
             Управляйте тестами во встроенной панели
           </p>
           <Link
             href="/teacher/tests"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition shadow-lg shadow-indigo-500/30"
           >
             <Plus className="w-5 h-5" /> Перейти к тестам
           </Link>
         </div>
       )}
 
+      {/* Модалка: Новый модуль */}
       {showModuleModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="glass p-6 rounded-2xl max-w-md w-full border border-white/40">
-            <h3 className="text-xl font-bold mb-4">Новый модуль</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-white via-[#f8f5ff] to-[#fff5f8] p-8 rounded-3xl max-w-lg w-full border-4 border-white shadow-2xl modal-animate">
+            <h3 className="text-2xl font-bold mb-5 text-[#0f1c3f]">
+              Новый модуль
+            </h3>
+            <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
+              Название модуля
+            </label>
             <input
               value={newModule.title}
               onChange={(e) =>
                 setNewModule({ ...newModule, title: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl mb-4"
-              placeholder="Название модуля"
+              className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition mb-5"
+              placeholder="Например: Введение"
             />
             <div className="flex gap-3">
               <button
                 onClick={() => setShowModuleModal(false)}
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50"
+                className="flex-1 px-5 py-4 border-2 border-white/80 rounded-2xl hover:bg-white/60 text-[#4a5578] font-medium transition"
               >
                 Отмена
               </button>
               <button
                 onClick={addModule}
                 disabled={saving}
-                className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 font-medium flex items-center justify-center gap-2"
+                className="flex-1 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-5 py-4 rounded-2xl hover:opacity-90 font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/30 disabled:opacity-50 transition"
               >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />} Создать
+                {saving && <Loader2 className="w-5 h-5 animate-spin" />} Создать
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Модалка: Новый урок */}
       {showLessonModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="glass p-6 rounded-2xl max-w-lg w-full border border-white/40 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Новый урок</h3>
-            <div className="space-y-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-white via-[#f8f5ff] to-[#fff5f8] p-8 rounded-3xl max-w-2xl w-full border-4 border-white shadow-2xl modal-animate max-h-[92vh] overflow-y-auto">
+            <h3 className="text-2xl font-bold mb-5 text-[#0f1c3f]">
+              Новый урок
+            </h3>
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
                   Название урока
                 </label>
                 <input
@@ -615,12 +661,12 @@ export default function TeacherPage() {
                   onChange={(e) =>
                     setNewLesson({ ...newLesson, title: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                  className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
                   placeholder="Например: Переменные"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
                   Ссылка на YouTube
                 </label>
                 <input
@@ -628,12 +674,12 @@ export default function TeacherPage() {
                   onChange={(e) =>
                     setNewLesson({ ...newLesson, videoUrl: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                  className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
                   placeholder="https://youtube.com/watch?v=..."
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
                   Длительность видео (в секундах)
                 </label>
                 <input
@@ -645,15 +691,15 @@ export default function TeacherPage() {
                       videoDuration: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                  className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition"
                   placeholder="600 = 10 минут"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-[#8a95b8] mt-2">
                   Ученику нужно посмотреть минимум 70% для зачёта
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-semibold mb-2 text-[#0f1c3f]">
                   Текст / задание
                 </label>
                 <textarea
@@ -661,25 +707,25 @@ export default function TeacherPage() {
                   onChange={(e) =>
                     setNewLesson({ ...newLesson, content: e.target.value })
                   }
-                  rows={4}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                  rows={5}
+                  className="w-full px-5 py-4 border-2 border-white/80 rounded-2xl bg-white/70 text-[#0f1c3f] text-base focus:outline-none focus:ring-2 focus:ring-[#6a7dff]/40 focus:bg-white transition resize-none"
                   placeholder="Описание урока или задание"
                 />
               </div>
             </div>
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowLessonModal(false)}
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50"
+                className="flex-1 px-5 py-4 border-2 border-white/80 rounded-2xl hover:bg-white/60 text-[#4a5578] font-medium transition"
               >
                 Отмена
               </button>
               <button
                 onClick={addLesson}
                 disabled={saving}
-                className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 font-medium flex items-center justify-center gap-2"
+                className="flex-1 bg-gradient-to-r from-[#4f7cff] to-[#7c5cff] text-white px-5 py-4 rounded-2xl hover:opacity-90 font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/30 disabled:opacity-50 transition"
               >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />} Создать
+                {saving && <Loader2 className="w-5 h-5 animate-spin" />} Создать
               </button>
             </div>
           </div>
